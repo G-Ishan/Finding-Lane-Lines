@@ -1,56 +1,33 @@
-# **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+# Reflection
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+[//]: # (Image References)
 
-Overview
----
+[image1]: ./report_images/first_iteration.png "First Iteration"
+[image2]: ./report_images/improved.png "Improved"
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+My pipeline consisted of 5 steps. First I converted the images to grayscale. Then, I applied a guassian blur with a kernel size of (5,5). This allowed to me apply Canny edges to the scene. Once I had the Canny edges, I applied a mask based on a ROI for the lane lines. From here, I applied Hough Lines and overlayed it on the image. These first iteration of these can be shown in the image below:
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+![alt text][image1]
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+The draw_lines function had to be improved to extrapolate the lane lines across the whole line (instead of the dashes). To accomplish this I implemented separate_lines(), find_longest_line(), and extrapolate_line(). In order, these functions first separated the Hough Lines into left and right lines based on their position in the scene. Then I found the longest line for each region using distance between intercepts. I used these lines to extrapolate because I felt they represented their lane well, being the longest line. To extrapolate the line, I knew I wanted the bottom ends at the bottom of the image, and the top ends were defined based on the positions I chose for my original mask (about the center of the image). I just had to find the x intercepts for the bottom of the lanes and I did that by using the slope formula. The overall pipeline described above stayed the same and the improved result is shown below:
 
-
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
-
-1. Describe the pipeline
-
-2. Identify any shortcomings
-
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+![alt text][image2]
 
 
-The Project
----
+### 2. Identify potential shortcomings with your current pipeline
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+In the video output, I can tell the lane lines are a little jittery. This is due to the fact that lane lines have thicknesses. The longest lane line that is extrapolated is sometimes at the left of the lane marker and sometimes at the right. This causes some differences in extrapolated across the video which leads to jitteriness. 
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) if you haven't already.
+Another shortcoming is that the extrapolation of the lane lines relies heavily on the slope of the found hough lines. The test videos did not include any instances of sharp curves or turns. I think the code would struggle in this situations.
 
-**Step 2:** Open the code in a Jupyter Notebook
+Another shortcoming is that my current pipeline cannot complete the challenge video.  I wanted to move along with the course at this time so I have saved this challenge for a future date.
 
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
+### 3. Suggest possible improvements to your pipeline
+To account for the jitter in the video, an improvement could be made to account for the previously extrapolated lane line. This takes me back to the lessons from the ITSDC ND where in localization, it is important to constantly take in data and also account for the previous path. I think this would improve the jumping around of lane lines as well.
 
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
+To improve the extrapolation on curves, the lane lines could be fit to a nonlinear curve instead of a straight line. This would allow splines to match the curvature of the road.
 
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+For the challenge in the future, I would likely have to improve my masking to mask yellow colors and white colors separately in the image. Then I could pick up the yellow and white lane lines better in a mixed image that includes both.
 
